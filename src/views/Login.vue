@@ -6,7 +6,7 @@
         <br />
         密码：<input type="password" v-model="password" />
         <br />
-        <button v-on:click="submitInfo">Login</button>
+        <button v-on:click.prevent="submitInfo">Login</button>
     </form>
   </div>
 </template>
@@ -21,6 +21,9 @@
         padding: 50px;
         box-shadow: 1px 1px 5px gray;
         transform: translate(-50%, -50%);
+    }
+    h1 {
+        margin-bottom: 10px;
     }
 </style>
 
@@ -47,7 +50,14 @@
                 asyncLocalStorage.setItem('username', response.data.username)
                 asyncLocalStorage.setItem('nickname', response.data.nickname)
                 asyncLocalStorage.setItem('jwt', response.data.jwt)
-                this.$router.push('/')
+                let request = {
+                    headers: {'Authorization': response.data.jwt}
+                }
+                axios.get(bbs+'api/v1/user', request)
+                .then((response: any) =>{
+                    asyncLocalStorage.setItem('logId', response.data.id)
+                    this.$router.push('/')
+                })
             })
             .catch(function(error: any) {
                 alert('密码错误')

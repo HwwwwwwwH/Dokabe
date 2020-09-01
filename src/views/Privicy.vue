@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <navigator v-bind:nickname="nickname" v-bind:userId="userId"></navigator>
+    <navigator v-bind:nickname="nickname" v-bind:userId="logId"></navigator>
     <div id="main">
       <div id="posts">
         <post-item v-for="post in posts" v-bind:key="post.id" v-bind:info="post"></post-item>
@@ -44,11 +44,14 @@ import router from '../router'
 
 export default class Home extends Vue {
   nickname: string=''
-  userId: number=1
   posts: Array<Object>=[]
   total: number=0
   postsCount: number=10
   page: number=1
+
+  get logId() {
+    return (Number)(localStorage.getItem('logId'))
+  }
 
   get token() {
     return localStorage.getItem('jwt')
@@ -65,10 +68,13 @@ export default class Home extends Vue {
   loadpage() {
       this.page = Number(this.$route.query.page)
       if(isNaN(this.page)) this.page = 1
+      let userId: any = this.$route.query.userId
+      if(userId === null) userId = localStorage.getItem('username')
       let requestData = {
         'page': this.page,
         'size': 10,
-        'orderByReply': true
+        'orderByReply': true,
+        'userId': userId
       }
       let request = {
         headers: {'Authorization': this.token},
@@ -91,8 +97,6 @@ export default class Home extends Vue {
     this.axios.get(this.bbs+'api/v1/user', request)
     .then((response: any) => {
       this.nickname = response.data.nickname
-      this.userId = response.data.id
-      this.$store.state.AsyncLocalStorage.setItem('logId', this.userId)
       this.loadpage()
     }) 
     .catch((error: any) => {
